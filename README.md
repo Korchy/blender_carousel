@@ -1,2 +1,1 @@
-# blender_carousel
-Carousel
+# Carousel
