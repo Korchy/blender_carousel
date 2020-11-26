@@ -23,7 +23,7 @@ class CAROUSEL_preferences(AddonPreferences):
             ('GEOMETRY', 'GEOMETRY', '', '', 0),
             ('BBOX', 'BBOX', '', '', 1)
         ],
-        default='GEOMETRY'
+        default='BBOX'
     )
 
     def draw(self, context):
