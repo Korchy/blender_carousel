@@ -20,6 +20,7 @@ class CAROUSEL_PT_panel(Panel):
         layout.label(text='Automatic')
         layout.operator('carousel.turntable', icon='DISC')
         layout.label(text='By steps')
+        layout.operator('carousel.turntable_init', icon='PRESET_NEW')
         layout.operator('carousel.turntable_clear', icon='CANCEL')
 
 

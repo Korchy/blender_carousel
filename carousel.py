@@ -11,17 +11,19 @@ import math
 
 class Carousel:
 
+    turntable_collection_name = 'turntable'
+
     @classmethod
     def turntable(cls, context, scene_data, selection):
-        # carousel
-        cls._init_turntable(
+        # mate turntable sequence
+        cls.init_turntable(
             context=context,
             scene_data=scene_data,
             selection=selection
         )
 
     @classmethod
-    def _init_turntable(cls, context, scene_data, selection):
+    def init_turntable(cls, context, scene_data, selection):
         # init scene for turntable
         # turntable collection
         turntable_collection = cls._turntable_collection(
@@ -90,8 +92,10 @@ class Carousel:
     @classmethod
     def _turntable_collection(cls, context, scene_data):
         # return turntable collection
-        turntable_collection = scene_data.collections.get('turntable')
+        turntable_collection = scene_data.collections.get(cls.turntable_collection_name)
         if not turntable_collection:
-            turntable_collection = scene_data.collections.new(name='turntable')
+            turntable_collection = scene_data.collections.new(
+                name=cls.turntable_collection_name
+            )
             context.scene.collection.children.link(child=turntable_collection)
         return turntable_collection
