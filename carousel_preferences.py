@@ -26,9 +26,28 @@ class CAROUSEL_preferences(AddonPreferences):
         default='BBOX'
     )
 
+    camera_lens_default: IntProperty(
+        name='Camera Focal Length',
+        subtype='DISTANCE',
+        min=1,
+        max=5000,
+        default=60
+    )
+
+    camera_sensor_width_default: IntProperty(
+        name='Camera Sensor Width',
+        subtype='DISTANCE',
+        min=1,
+        max=100,
+        default=36
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'points_amount_default')
+        layout.label(text='Default Camera Data')
+        layout.prop(self, 'camera_lens_default')
+        layout.prop(self, 'camera_sensor_width_default')
         layout.label(text='Performance')
         layout.prop(self, 'center_count_mode')
 

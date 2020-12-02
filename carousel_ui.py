@@ -16,7 +16,11 @@ class CAROUSEL_PT_panel(Panel):
     bl_category = 'Carousel'
 
     def draw(self, context):
-        self.layout.operator('carousel.turntable', icon='DISC')
+        layout = self.layout
+        layout.label(text='Automatic')
+        layout.operator('carousel.turntable', icon='DISC')
+        layout.label(text='By steps')
+        layout.operator('carousel.turntable_clear', icon='CANCEL')
 
 
 def register():
