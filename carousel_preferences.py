@@ -14,6 +14,9 @@ class CAROUSEL_preferences(AddonPreferences):
 
     points_amount_default: IntProperty(
         name='Points amount',
+        subtype='UNSIGNED',
+        min=1,
+        max=999,
         default=36
     )
 

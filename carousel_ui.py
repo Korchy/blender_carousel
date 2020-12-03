@@ -21,6 +21,16 @@ class CAROUSEL_PT_panel(Panel):
         layout.operator('carousel.turntable', icon='DISC')
         layout.label(text='By steps')
         layout.operator('carousel.turntable_init', icon='PRESET_NEW')
+        row = layout.row()
+        col = row.column()
+        box = col.box()
+        row1 = box.row()
+        row1.operator('carousel.turntable_to_prev_point', icon='TRIA_LEFT', text='')
+        row1.operator('carousel.turntable_to_active_point', icon='VIS_SEL_11')
+        row1.operator('carousel.turntable_to_next_point', icon='TRIA_RIGHT', text='')
+        col = row.column()
+        box = col.box()
+        box.operator('carousel.turntable_select_points', icon='POINTCLOUD_DATA', text='')
         layout.operator('carousel.turntable_clear', icon='CANCEL')
 
 

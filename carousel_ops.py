@@ -45,7 +45,7 @@ class CAROUSEL_OT_turntable_init(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        Carousel.init_turntable(
+        Carousel.turntable_init(
             context=context,
             scene_data=bpy.data,
             selection=context.selected_objects
@@ -60,6 +60,101 @@ class CAROUSEL_OT_turntable_init(Operator):
                and not bpy.data.collections.get(Carousel.turntable_collection_name)
 
 
+class CAROUSEL_OT_turntable_select_points(Operator):
+    bl_idname = 'carousel.turntable_select_points'
+    bl_label = 'Select Points'
+    bl_description = 'Select Turntable points'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        current_mode = context.object.mode if context.object else 'OBJECT'
+        if current_mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+        Carousel.turntable_select_points(
+            context=context,
+            scene_data=bpy.data
+        )
+        if context.object:
+            bpy.ops.object.mode_set(mode=current_mode)
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(bpy.data.collections.get(Carousel.turntable_collection_name))
+
+
+class CAROUSEL_OT_turntable_to_prev_point(Operator):
+    bl_idname = 'carousel.turntable_to_prev_point'
+    bl_label = 'To Prev'
+    bl_description = 'Move camera to the previous point'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        current_mode = context.object.mode if context.object else 'OBJECT'
+        if current_mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+        Carousel.turntable_to_prev_point(
+            context=context,
+            scene_data=bpy.data
+        )
+        if context.object:
+            bpy.ops.object.mode_set(mode=current_mode)
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(bpy.data.collections.get(Carousel.turntable_collection_name))
+
+
+class CAROUSEL_OT_turntable_to_next_point(Operator):
+    bl_idname = 'carousel.turntable_to_next_point'
+    bl_label = 'To Next'
+    bl_description = 'Move camera to the next point'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        current_mode = context.object.mode if context.object else 'OBJECT'
+        if current_mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+        Carousel.turntable_to_next_point(
+            context=context,
+            scene_data=bpy.data
+        )
+        if context.object:
+            bpy.ops.object.mode_set(mode=current_mode)
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(bpy.data.collections.get(Carousel.turntable_collection_name))
+
+
+class CAROUSEL_OT_turntable_to_active_point(Operator):
+    bl_idname = 'carousel.turntable_to_active_point'
+    bl_label = 'To Active'
+    bl_description = 'Move camera to the active point'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        current_mode = context.object.mode if context.object else 'OBJECT'
+        if current_mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+        Carousel.turntable_to_active_point(
+            context=context,
+            scene_data=bpy.data
+        )
+        if context.object:
+            bpy.ops.object.mode_set(mode=current_mode)
+        return {'FINISHED'}
+
+    @classmethod
+    def poll(cls, context):
+        return bool(bpy.data.collections.get(Carousel.turntable_collection_name)) \
+               and context.active_object \
+               and context.active_object.type == 'EMPTY' \
+               and 'point_' in context.active_object.name
+
+
 class CAROUSEL_OT_turntable_clear(Operator):
     bl_idname = 'carousel.turntable_clear'
     bl_label = 'Clear'
@@ -70,7 +165,7 @@ class CAROUSEL_OT_turntable_clear(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        Carousel.clear_turntable(
+        Carousel.turntable_clear(
             context=context,
             scene_data=bpy.data
         )
@@ -86,10 +181,18 @@ class CAROUSEL_OT_turntable_clear(Operator):
 def register():
     register_class(CAROUSEL_OT_turntable)
     register_class(CAROUSEL_OT_turntable_init)
+    register_class(CAROUSEL_OT_turntable_select_points)
+    register_class(CAROUSEL_OT_turntable_to_prev_point)
+    register_class(CAROUSEL_OT_turntable_to_next_point)
+    register_class(CAROUSEL_OT_turntable_to_active_point)
     register_class(CAROUSEL_OT_turntable_clear)
 
 
 def unregister():
     unregister_class(CAROUSEL_OT_turntable_clear)
+    unregister_class(CAROUSEL_OT_turntable_to_active_point)
+    unregister_class(CAROUSEL_OT_turntable_to_next_point)
+    unregister_class(CAROUSEL_OT_turntable_to_prev_point)
+    unregister_class(CAROUSEL_OT_turntable_select_points)
     unregister_class(CAROUSEL_OT_turntable_init)
     unregister_class(CAROUSEL_OT_turntable)
