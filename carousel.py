@@ -9,16 +9,15 @@ from mathutils import Vector
 import math
 
 
-class Carousel:
+class TurnTable:
     turntable_collection_name = 'turntable'
-
     _backup = {
         'camera': None
     }
 
     @classmethod
     def turntable(cls, context, scene_data, selection):
-        # mate turntable sequence
+        # make full turntable sequence
         cls.turntable_init(
             context=context,
             scene_data=scene_data,
@@ -63,13 +62,11 @@ class Carousel:
             h_fov_rad = 2 * math.atan((0.5 * render_width) / (0.5 * render_height / math.tan(v_fov_rad / 2)))
         min_angle = min(v_fov_rad, h_fov_rad)
         camera_ring_radius = b_sphere_radius / math.tan(min_angle / 2)
-        camera_location = (b_sphere_co.x - camera_ring_radius, b_sphere_co.y, b_sphere_co.z)
         camera_data = scene_data.cameras.new(name='cam')
         camera_data.lens = lens
         camera_data.sensor_width = sensor_width
         camera = scene_data.objects.new(name='cam', object_data=camera_data)
         context.scene.camera = camera   # make turntable camera active in scene
-        # camera.location = camera_location
         turntable_collection.objects.link(object=camera)
         # camera targeting
         track_to = camera.constraints.new(type='TRACK_TO')
@@ -84,7 +81,7 @@ class Carousel:
             point.location = null_location + camera_target.location
             turntable_collection.objects.link(object=point)
         # camera to 0 point
-        cls._turntable_to_point(
+        cls.turntable_to_point(
             context=context,
             scene_data=scene_data,
             point_number=0
@@ -103,11 +100,12 @@ class Carousel:
     @classmethod
     def turntable_to_active_point(cls, context, scene_data):
         # camera to active point
-        active_point_number = int(context.active_object.name[-3:]) if context.active_object \
-                                                                      and context.active_object.type == 'EMPTY' \
-                                                                      and 'point_' in context.active_object.name else None
+        active_point_number = cls.active_point_number(
+            context=context,
+            scene_data=scene_data
+        )
         if active_point_number:
-            cls._turntable_to_point(
+            cls.turntable_to_point(
                 context=context,
                 scene_data=scene_data,
                 point_number=active_point_number,
@@ -122,7 +120,7 @@ class Carousel:
             max_number = context.preferences.addons[__package__].preferences.points_amount_default - 1
             next_point_number = int(camera.parent.name[-3:]) + 1
             next_point_number = 0 if next_point_number > max_number else next_point_number
-            cls._turntable_to_point(
+            cls.turntable_to_point(
                 context=context,
                 scene_data=scene_data,
                 point_number=next_point_number,
@@ -137,7 +135,7 @@ class Carousel:
             max_number = context.preferences.addons[__package__].preferences.points_amount_default - 1
             prev_point_number = int(camera.parent.name[-3:]) - 1
             prev_point_number = max_number if prev_point_number < 0 else prev_point_number
-            cls._turntable_to_point(
+            cls.turntable_to_point(
                 context=context,
                 scene_data=scene_data,
                 point_number=prev_point_number,
@@ -145,7 +143,7 @@ class Carousel:
             )
 
     @classmethod
-    def _turntable_to_point(cls, context, scene_data, point_number=0, camera_view=False):
+    def turntable_to_point(cls, context, scene_data, point_number=0, camera_view=False):
         # camera to point
         point = next((point for point in cls._turntable_points(scene_data=scene_data)
                       if point.name == 'point_' + str(point_number).zfill(3)), None)
@@ -198,6 +196,17 @@ class Carousel:
             return (point for point in turntable_collection.objects if point.type == 'EMPTY' and 'point_' in point.name)
         else:
             return None
+
+    @classmethod
+    def active_point_number(cls, context, scene_data):
+        # return active point number
+        turntable_collection = scene_data.collections.get(cls.turntable_collection_name)
+        return int(context.active_object.name[-3:]) \
+            if context.active_object \
+            and context.active_object.type == 'EMPTY' \
+            and (context.active_object in turntable_collection.objects[:]) \
+            and 'point_' in context.active_object.name \
+            else None
 
     @staticmethod
     def _deselect_all(context):

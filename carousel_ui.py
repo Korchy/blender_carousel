@@ -31,6 +31,9 @@ class CAROUSEL_PT_panel(Panel):
         col = row.column()
         box = col.box()
         box.operator('carousel.turntable_select_points', icon='POINTCLOUD_DATA', text='')
+        row = layout.row()
+        row.operator('carousel.turntable_render_all', icon='RENDER_RESULT')
+        row.operator('carousel.turntable_render_current', icon='IMAGE_DATA')
         layout.operator('carousel.turntable_clear', icon='CANCEL')
 
 
