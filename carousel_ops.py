@@ -17,23 +17,57 @@ class CAROUSEL_OT_turntable(Operator):
     bl_description = 'Make turntable image sequence'
     bl_options = {'REGISTER', 'UNDO'}
 
+    _timer = None  # timer for modal calling
+
     def execute(self, context):
+        # do all automatic
+        # to object mode
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable(
+        # init
+        TurnTable.init(
             context=context,
             scene_data=bpy.data,
             selection=context.selected_objects
         )
-        if context.object:
-            bpy.ops.object.mode_set(mode=current_mode)
-        return {'FINISHED'}
+        # batch render
+        CarouselRender.batch_render(
+            context=context,
+            scene_data=bpy.data
+        )
+        # to monitor normal finishing
+        self._timer = context.window_manager.event_timer_add(
+            time_step=0.5,
+            window=context.window
+        )
+        # to monitor cancelling
+        context.window_manager.modal_handler_add(operator=self)
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+        if event.type in {'ESC'}:
+            context.window_manager.event_timer_remove(self._timer)
+            CarouselRender.clear()
+            TurnTable.clear(
+                context=context,
+                scene_data=bpy.data
+            )
+            return {'CANCELLED'}
+        if event.type == 'TIMER':
+            if CarouselRender.mode() is None:
+                context.window_manager.event_timer_remove(self._timer)
+                TurnTable.clear(
+                    context=context,
+                    scene_data=bpy.data
+                )
+                return {'FINISHED'}
+        return {'PASS_THROUGH'}
 
     @classmethod
     def poll(cls, context):
         return bool(context.selected_objects) \
-               and not bpy.data.collections.get(TurnTable.turntable_collection_name)
+               and not bpy.data.collections.get(TurnTable.collection_name)
 
 
 class CAROUSEL_OT_turntable_init(Operator):
@@ -46,7 +80,7 @@ class CAROUSEL_OT_turntable_init(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable_init(
+        TurnTable.init(
             context=context,
             scene_data=bpy.data,
             selection=context.selected_objects
@@ -58,7 +92,7 @@ class CAROUSEL_OT_turntable_init(Operator):
     @classmethod
     def poll(cls, context):
         return bool(context.selected_objects) \
-               and not bpy.data.collections.get(TurnTable.turntable_collection_name)
+               and not bpy.data.collections.get(TurnTable.collection_name)
 
 
 class CAROUSEL_OT_turntable_select_points(Operator):
@@ -71,7 +105,7 @@ class CAROUSEL_OT_turntable_select_points(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable_select_points(
+        TurnTable.select_points(
             context=context,
             scene_data=bpy.data
         )
@@ -81,7 +115,7 @@ class CAROUSEL_OT_turntable_select_points(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bool(bpy.data.collections.get(TurnTable.turntable_collection_name))
+        return bool(bpy.data.collections.get(TurnTable.collection_name))
 
 
 class CAROUSEL_OT_turntable_to_prev_point(Operator):
@@ -94,7 +128,7 @@ class CAROUSEL_OT_turntable_to_prev_point(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable_to_prev_point(
+        TurnTable.to_prev_point(
             context=context,
             scene_data=bpy.data
         )
@@ -104,7 +138,7 @@ class CAROUSEL_OT_turntable_to_prev_point(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bool(bpy.data.collections.get(TurnTable.turntable_collection_name))
+        return bool(bpy.data.collections.get(TurnTable.collection_name))
 
 
 class CAROUSEL_OT_turntable_to_next_point(Operator):
@@ -117,7 +151,7 @@ class CAROUSEL_OT_turntable_to_next_point(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable_to_next_point(
+        TurnTable.to_next_point(
             context=context,
             scene_data=bpy.data
         )
@@ -127,7 +161,7 @@ class CAROUSEL_OT_turntable_to_next_point(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bool(bpy.data.collections.get(TurnTable.turntable_collection_name))
+        return bool(bpy.data.collections.get(TurnTable.collection_name))
 
 
 class CAROUSEL_OT_turntable_to_active_point(Operator):
@@ -140,7 +174,7 @@ class CAROUSEL_OT_turntable_to_active_point(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable_to_active_point(
+        TurnTable.to_active_point(
             context=context,
             scene_data=bpy.data
         )
@@ -150,22 +184,19 @@ class CAROUSEL_OT_turntable_to_active_point(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bool(TurnTable.active_point_number(
+        return TurnTable.active_point_number(
             context=context,
             scene_data=bpy.data
-        ))
+        ) is not None
 
 
-class CAROUSEL_OT_turntable_render_current(Operator):
-    bl_idname = 'carousel.turntable_render_current'
-    bl_label = 'Render Current'
-    bl_description = 'Render form the current camera position'
+class CAROUSEL_OT_turntable_render_active(Operator):
+    bl_idname = 'carousel.turntable_render_active'
+    bl_label = 'Render Active Point'
+    bl_description = 'Render form the active point position'
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        current_mode = context.object.mode if context.object else 'OBJECT'
-        if current_mode == 'EDIT':
-            bpy.ops.object.mode_set(mode='OBJECT')
         CarouselRender.point_render(
             context=context,
             scene_data=bpy.data,
@@ -174,16 +205,14 @@ class CAROUSEL_OT_turntable_render_current(Operator):
                 scene_data=bpy.data
             )
         )
-        if context.object:
-            bpy.ops.object.mode_set(mode=current_mode)
         return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
-        return bool(TurnTable.active_point_number(
+        return TurnTable.active_point_number(
             context=context,
             scene_data=bpy.data
-        ))
+        ) is not None
 
 
 class CAROUSEL_OT_turntable_render_all(Operator):
@@ -192,21 +221,36 @@ class CAROUSEL_OT_turntable_render_all(Operator):
     bl_description = 'Render all the sequence'
     bl_options = {'REGISTER', 'UNDO'}
 
+    _timer = None  # timer for modal calling
+
     def execute(self, context):
-        current_mode = context.object.mode if context.object else 'OBJECT'
-        if current_mode == 'EDIT':
-            bpy.ops.object.mode_set(mode='OBJECT')
         CarouselRender.batch_render(
             context=context,
             scene_data=bpy.data
         )
-        if context.object:
-            bpy.ops.object.mode_set(mode=current_mode)
-        return {'FINISHED'}
+        # to monitor normal finishing
+        self._timer = context.window_manager.event_timer_add(
+            time_step=0.5,
+            window=context.window
+        )
+        # to monitor cancelling
+        context.window_manager.modal_handler_add(operator=self)
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+        if event.type in {'ESC'}:
+            CarouselRender.clear()
+            context.window_manager.event_timer_remove(self._timer)
+            return {'CANCELLED'}
+        if event.type == 'TIMER':
+            if CarouselRender.mode() is None:
+                context.window_manager.event_timer_remove(self._timer)
+                return {'FINISHED'}
+        return {'PASS_THROUGH'}
 
     @classmethod
     def poll(cls, context):
-        return bool(bpy.data.collections.get(TurnTable.turntable_collection_name))
+        return bool(bpy.data.collections.get(TurnTable.collection_name))
 
 
 class CAROUSEL_OT_turntable_clear(Operator):
@@ -219,7 +263,7 @@ class CAROUSEL_OT_turntable_clear(Operator):
         current_mode = context.object.mode if context.object else 'OBJECT'
         if current_mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        TurnTable.turntable_clear(
+        TurnTable.clear(
             context=context,
             scene_data=bpy.data
         )
@@ -229,7 +273,7 @@ class CAROUSEL_OT_turntable_clear(Operator):
 
     @classmethod
     def poll(cls, context):
-        return bool(bpy.data.collections.get(TurnTable.turntable_collection_name))
+        return bool(bpy.data.collections.get(TurnTable.collection_name))
 
 
 def register():
@@ -239,7 +283,7 @@ def register():
     register_class(CAROUSEL_OT_turntable_to_prev_point)
     register_class(CAROUSEL_OT_turntable_to_next_point)
     register_class(CAROUSEL_OT_turntable_to_active_point)
-    register_class(CAROUSEL_OT_turntable_render_current)
+    register_class(CAROUSEL_OT_turntable_render_active)
     register_class(CAROUSEL_OT_turntable_render_all)
     register_class(CAROUSEL_OT_turntable_clear)
 
@@ -247,7 +291,7 @@ def register():
 def unregister():
     unregister_class(CAROUSEL_OT_turntable_clear)
     unregister_class(CAROUSEL_OT_turntable_render_all)
-    unregister_class(CAROUSEL_OT_turntable_render_current)
+    unregister_class(CAROUSEL_OT_turntable_render_active)
     unregister_class(CAROUSEL_OT_turntable_to_active_point)
     unregister_class(CAROUSEL_OT_turntable_to_next_point)
     unregister_class(CAROUSEL_OT_turntable_to_prev_point)
