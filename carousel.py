@@ -30,6 +30,7 @@ class TurnTable:
         # bounding sphere (target)
         b_sphere_co, b_sphere_radius = Object.bounding_sphere(
             objects=selection,
+            context=context,
             mode=context.preferences.addons[__package__].preferences.center_count_mode
         )
         if not b_sphere_co:

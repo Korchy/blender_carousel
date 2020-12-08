@@ -10,7 +10,7 @@ from mathutils import Vector
 class Object:
 
     @staticmethod
-    def bounding_sphere(objects, mode='BBOX'):
+    def bounding_sphere(objects, context, mode='BBOX'):
         # return the bounding sphere center and radius for objects (in global coordinates)
         if not isinstance(objects, list):
             objects = [objects]
@@ -18,6 +18,9 @@ class Object:
         if mode == 'GEOMETRY':
             # GEOMETRY - by all vertices/points - more precis, more slow
             for obj in objects:
+                # to take into modifiers and transforms
+                depsgraph = context.evaluated_depsgraph_get()
+                obj = obj.evaluated_get(depsgraph)
                 if obj.type == 'MESH':
                     points_co_global.extend([obj.matrix_world @ vertex.co for vertex in obj.data.vertices])
                 elif obj.type == 'CURVE':
