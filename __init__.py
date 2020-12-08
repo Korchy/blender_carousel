@@ -15,7 +15,7 @@ bl_info = {
     'category': 'All',
     'author': 'Nikita Akimov',
     'version': (1, 0, 0),
-    'blender': (2, 90, 0),
+    'blender': (2, 91, 0),
     'location': '3D Viewport window - N-panel - Carousel',
     'wiki_url': 'https://b3d.interplanety.org/en/blender-add-on-carousel/',
     'tracker_url': 'https://b3d.interplanety.org/en/blender-add-on-carousel/',

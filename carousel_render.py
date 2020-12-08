@@ -100,8 +100,9 @@ class CarouselRender:
     def _save_image(cls, scene):
         # save image from current render
         dest_dir = CarouselFileSystem.abs_path(
-            path=cls._context.scene.render.filepath
+            path=cls._context.scene.render.filepath if cls._context.scene.render.filepath else os.path.dirname(cls._scene_data.filepath)
         )
+        print(dest_dir)
         if dest_dir:
             dest_dir = os.path.join(dest_dir, 'turntable')
             if not os.path.isdir(dest_dir):
